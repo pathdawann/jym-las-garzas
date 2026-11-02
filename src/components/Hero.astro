@@ -1,0 +1,50 @@
+---
+import { SITE, HOME_SERVICE_ZONES, waLink } from '../data/site';
+---
+<section id="inicio" aria-labelledby="hero-title" class="bg-gradient-to-b from-brand-50 to-slate-50">
+  <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:py-24">
+    <div>
+      <h1 id="hero-title" class="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+        Resultados precisos, entregados a tiempo y con trato cercano
+      </h1>
+      <p class="mt-5 max-w-xl text-xl text-slate-700">
+        Laboratorio clínico y pruebas genéticas en Lechería. Recibimos tu muestra en la sede o en tu casa, sin costo adicional
+        en {HOME_SERVICE_ZONES.slice(0, -1).join(', ')} y {HOME_SERVICE_ZONES.at(-1)}.
+      </p>
+
+      <!-- CTAs: una acción principal, dos secundarias; todas con texto explícito. -->
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="#resultados" class="btn btn-primary">Consultar resultados en línea</a>
+        <a href="#examenes" class="btn btn-secondary">Buscar estudios</a>
+        <a href="#sedes" class="btn btn-secondary">Ubicación y horarios</a>
+      </div>
+
+      <ul class="mt-8 grid gap-3 text-lg text-slate-700 sm:grid-cols-2">
+        <li class="flex gap-3"><span aria-hidden="true" class="font-bold text-accent-700">✓</span>Resultados por WhatsApp o correo</li>
+        <li class="flex gap-3"><span aria-hidden="true" class="font-bold text-accent-700">✓</span>Coordina día y hora por WhatsApp</li>
+      </ul>
+    </div>
+
+    <!-- Pieza visual: etiqueta de tubo de muestra con la información que el paciente más pregunta. -->
+    <aside aria-label="Ejemplo de ficha de preparación" class="mx-auto w-full max-w-sm">
+      <div class="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm text-slate-600">Ficha de preparación</p>
+            <p class="mt-1 text-2xl font-bold text-brand-900">Perfil 20</p>
+          </div>
+          <span class="rounded-md bg-accent-50 px-3 py-1 text-sm font-bold text-accent-700">Sangre</span>
+        </div>
+        <dl class="mt-5 space-y-3 border-t border-dashed border-slate-300 pt-5 text-lg">
+          <div><dt class="text-sm text-slate-600">Ayuno</dt><dd class="font-bold">8 a 12 horas</dd></div>
+          <div><dt class="text-sm text-slate-600">Puedes tomar</dt><dd class="font-bold">Agua</dd></div>
+        </dl>
+        <div class="mt-5 h-10 rounded bg-[repeating-linear-gradient(90deg,#0f172a_0_2px,transparent_2px_5px,#0f172a_5px_6px,transparent_6px_10px)] opacity-80" aria-hidden="true"></div>
+        <a href="#examenes" class="mt-5 inline-block font-bold text-brand-700 underline underline-offset-4 hover:text-brand-900">Ver la preparación de otros exámenes</a>
+      </div>
+      <p class="mt-4 text-center text-slate-600">
+        ¿Dudas? Escríbenos al <a class="font-bold text-brand-700 underline" href={waLink()}>{SITE.phoneDisplay}</a>
+      </p>
+    </aside>
+  </div>
+</section>

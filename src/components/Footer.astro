@@ -1,0 +1,26 @@
+---
+import Logo from './Logo.astro';
+import { SITE, waLink } from '../data/site';
+---
+<footer class="bg-slate-900 py-12 text-slate-300">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-3">
+    <div>
+      <Logo light />
+      <p class="mt-4">{SITE.tagline}.</p>
+      <p class="mt-1 text-slate-400">RIF {SITE.rif}</p>
+    </div>
+    <div>
+      <h2 class="text-lg font-bold text-white">Contacto</h2>
+      <ul class="mt-3 space-y-2">
+        <li><a class="underline underline-offset-4 hover:text-white" href={waLink()}>WhatsApp {SITE.phoneDisplay}</a></li>
+        <li><a class="underline underline-offset-4 hover:text-white" href={SITE.instagram} rel="noopener noreferrer" target="_blank">Instagram {SITE.instagramHandle}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="text-lg font-bold text-white">Información</h2>
+      <p class="mt-3">Esta página no sustituye la consulta médica. Los resultados deben ser interpretados por tu médico tratante.</p>
+      <p class="mt-3 text-slate-400">Tus datos de salud se tratan de forma confidencial. {/* TODO: enlazar /privacidad */}</p>
+    </div>
+  </div>
+  <p class="mx-auto mt-10 max-w-6xl px-4 text-slate-400 sm:px-6">© {new Date().getFullYear()} {SITE.name}. Todos los derechos reservados.</p>
+</footer>

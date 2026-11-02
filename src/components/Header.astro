@@ -1,0 +1,61 @@
+---
+import Logo from './Logo.astro';
+import { waLink } from '../data/site';
+
+const links = [
+  { href: '#examenes', label: 'Exámenes' },
+  { href: '#servicios', label: 'Servicios' },
+  { href: '#resultados', label: 'Resultados' },
+  { href: '#sedes', label: 'Ubicación' },
+  { href: '#empresas', label: 'Empresas' },
+];
+---
+<header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <a href="#inicio" aria-label="Laboratorio J&M Las Garzas, ir al inicio"><Logo /></a>
+
+    <nav aria-label="Principal" class="hidden lg:block">
+      <ul class="flex items-center gap-1">
+        {links.map((l) => (
+          <li><a href={l.href} class="rounded-lg px-4 py-3 font-bold text-slate-700 hover:bg-brand-50 hover:text-brand-800">{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <!-- Aumenta el tamaño base del texto; la preferencia se recuerda en este navegador. -->
+      <button id="text-size-toggle" type="button" aria-pressed="false"
+        class="min-h-12 min-w-12 rounded-lg border-2 border-slate-400 px-3 font-bold text-slate-800 hover:bg-slate-100">
+        <span aria-hidden="true">A+</span><span class="sr-only">Aumentar tamaño del texto</span>
+      </button>
+      <a href={waLink('Hola, quisiera información sobre sus servicios.')} class="btn btn-wa hidden sm:inline-flex">WhatsApp</a>
+
+      <!-- Menú móvil con <details>: accesible por teclado y sin JavaScript. -->
+      <details class="relative lg:hidden">
+        <summary class="flex min-h-12 cursor-pointer list-none items-center rounded-lg border-2 border-brand-700 px-4 font-bold text-brand-800 [&::-webkit-details-marker]:hidden">Menú</summary>
+        <ul class="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+          {links.map((l) => (
+            <li><a href={l.href} class="block rounded-lg px-4 py-3 font-bold text-slate-800 hover:bg-brand-50">{l.label}</a></li>
+          ))}
+        </ul>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('text-size-toggle');
+  const root = document.documentElement;
+  const KEY = 'jym-text-size';
+  const apply = (large: boolean) => {
+    root.dataset.text = large ? 'large' : 'normal';
+    btn?.setAttribute('aria-pressed', String(large));
+  };
+  // localStorage puede estar bloqueado (modo privado): siempre dentro de try/catch.
+  try { apply(localStorage.getItem(KEY) === 'large'); } catch { apply(false); }
+  btn?.addEventListener('click', () => {
+    const next = root.dataset.text !== 'large';
+    apply(next);
+    try { localStorage.setItem(KEY, next ? 'large' : 'normal'); } catch { /* sin persistencia */ }
+  });
+</script>

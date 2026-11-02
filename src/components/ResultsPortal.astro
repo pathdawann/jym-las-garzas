@@ -1,0 +1,106 @@
+---
+/**
+ * ⚠️ SIMULACIÓN DE UI. Este componente NO consulta ningún servidor ni maneja datos reales.
+ * Para producción ver README → "Seguridad y privacidad": el flujo real requiere backend propio
+ * (rate limiting, CAPTCHA, URLs firmadas de corta vida, auditoría), nunca lógica de acceso en el cliente.
+ */
+---
+<section id="resultados" aria-labelledby="resultados-title" class="bg-brand-50 py-16 sm:py-24">
+  <div class="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
+    <div>
+      <h2 id="resultados-title" class="section-title">Consulta tus resultados</h2>
+      <p class="section-lead">Ingresa tu cédula y el código que aparece en tu comprobante de muestra.</p>
+      <p class="mt-6 rounded-xl border border-brand-200 bg-white p-4 text-slate-700">
+        <strong class="text-brand-900">Tu privacidad:</strong> la conexión es cifrada (HTTPS), no guardamos tu cédula en este navegador
+        y el enlace de descarga caduca a los pocos minutos.
+      </p>
+      <p class="mt-4 text-slate-700">¿No tienes el código? Escríbenos por WhatsApp y te enviamos el informe.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm sm:p-8">
+      <span class="inline-block rounded-md bg-amber-100 px-3 py-1 text-sm font-bold text-amber-900">Demostración: no consulta datos reales</span>
+
+      <!-- noValidate: validamos nosotros para mostrar mensajes claros y accesibles en español. -->
+      <form id="results-form" novalidate class="mt-5 space-y-5">
+        <div>
+          <label for="cedula" class="block text-lg font-bold">Cédula de identidad</label>
+          <input id="cedula" name="cedula" type="text" inputmode="text" autocomplete="off" maxlength="12"
+            class="field" placeholder="Ejemplo: V-12345678" aria-describedby="cedula-error" />
+          <p id="cedula-error" class="mt-1 hidden font-bold text-red-700"></p>
+        </div>
+        <div>
+          <label for="codigo" class="block text-lg font-bold">Código de muestra</label>
+          <input id="codigo" name="codigo" type="text" autocomplete="off" maxlength="16"
+            class="field" placeholder="Ejemplo: JM-004821" aria-describedby="codigo-error" />
+          <p id="codigo-error" class="mt-1 hidden font-bold text-red-700"></p>
+        </div>
+        <button id="results-submit" type="submit" class="btn btn-primary w-full">Ver mi resultado</button>
+        <p id="results-status" role="status" aria-live="polite" class="min-h-7 text-lg font-bold text-slate-800"></p>
+      </form>
+
+      <div id="results-panel" hidden class="mt-2 rounded-xl border-2 border-emerald-700 bg-emerald-50 p-5">
+        <h3 class="text-xl font-bold text-emerald-900">Tu informe está listo (ejemplo)</h3>
+        <p class="mt-1 text-slate-700">En el sistema real aquí aparece el botón para descargar tu PDF.</p>
+        <button type="button" disabled class="btn mt-4 cursor-not-allowed bg-slate-300 text-slate-700">Descargar informe en PDF</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('results-form') as HTMLFormElement | null;
+  if (form) {
+    const cedula = form.querySelector<HTMLInputElement>('#cedula')!;
+    const codigo = form.querySelector<HTMLInputElement>('#codigo')!;
+    const status = document.getElementById('results-status')!;
+    const panel = document.getElementById('results-panel')!;
+    const submit = document.getElementById('results-submit') as HTMLButtonElement;
+
+    // Mismas reglas que debe aplicar el servidor (la validación del cliente es solo comodidad, no seguridad).
+    const CEDULA = /^[VE]-?\d{6,9}$/;
+    const CODIGO = /^[A-Z0-9-]{6,16}$/;
+
+    function setError(input: HTMLInputElement, message: string) {
+      const box = document.getElementById(`${input.id}-error`)!;
+      box.textContent = message;
+      box.classList.toggle('hidden', !message);
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+      return Boolean(message);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      panel.hidden = true;
+      status.textContent = '';
+
+      const ced = cedula.value.replace(/\s/g, '').toUpperCase();
+      const cod = codigo.value.replace(/\s/g, '').toUpperCase();
+
+      const cedBad = setError(cedula, CEDULA.test(ced) ? '' : 'Escribe tu cédula con la letra inicial. Ejemplo: V-12345678.');
+      const codBad = setError(codigo, CODIGO.test(cod) ? '' : 'Revisa el código de tu comprobante. Tiene entre 6 y 16 letras o números.');
+      if (cedBad || codBad) { (cedBad ? cedula : codigo).focus(); return; }
+
+      submit.disabled = true;
+      status.textContent = 'Verificando tus datos…';
+
+      /* ── PRODUCCIÓN ──────────────────────────────────────────────
+         const res = await fetch('/api/resultados', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           credentials: 'same-origin',
+           body: JSON.stringify({ cedula: ced, codigo: cod, captcha: token }), // NUNCA en la URL
+         });
+         → Respuesta genérica ante fallo ("Datos no coinciden"); no revelar cuál campo falló.
+         → Éxito: { url } firmada, de un solo uso y válida pocos minutos; Cache-Control: no-store.
+         ─────────────────────────────────────────────────────────── */
+      await new Promise((r) => setTimeout(r, 900)); // simulación de latencia
+
+      submit.disabled = false;
+      status.textContent = '';
+      panel.hidden = false;
+      panel.querySelector('h3')?.setAttribute('tabindex', '-1');
+      (panel.querySelector('h3') as HTMLElement).focus();
+      form.reset(); // no dejamos la cédula en el formulario
+    });
+  }
+</script>

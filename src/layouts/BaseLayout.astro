@@ -1,0 +1,65 @@
+---
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '../styles/global.css';
+import { SITE, LOCATIONS, HOME_SERVICE_ZONES } from '../data/site';
+import { EXAMS } from '../data/exams';
+
+interface Props { title?: string; description?: string }
+const { title = `${SITE.name} | Laboratorio clínico y pruebas de ADN en Lechería`, description = SITE.description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/**
+ * Schema.org: DiagnosticLab (laboratorio médico) + MedicalBusiness (negocio local).
+ * availableService lista los exámenes como MedicalTest → ayuda al SEO local y a los rich results.
+ * TODO: agregar geo (latitud/longitud), openingHoursSpecification y logo cuando estén confirmados.
+ */
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': ['DiagnosticLab', 'MedicalBusiness'],
+  name: SITE.name,
+  description: SITE.description,
+  url: canonical.origin,
+  telephone: SITE.phoneE164,
+  taxID: SITE.rif,
+  sameAs: [SITE.instagram],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Urb. Las Garzas, Av. Intercomunal',
+    addressLocality: 'Lechería',
+    addressRegion: 'Anzoátegui',
+    postalCode: '6016',
+    addressCountry: 'VE',
+  },
+  areaServed: HOME_SERVICE_ZONES.map((name) => ({ '@type': 'City', name })),
+  hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(LOCATIONS[0].mapsQuery)}`,
+  availableService: EXAMS.map((e) => ({ '@type': 'MedicalTest', name: e.name, alternateName: e.aliases })),
+};
+// Escapar "<" evita que un dato con "</script>" rompa el bloque JSON-LD.
+const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
+---
+<!doctype html>
+<html lang="es-VE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#072f4d" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_VE" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <script type="application/ld+json" set:html={schemaJson} />
+  </head>
+  <body class="font-sans">
+    <a href="#contenido" class="sr-only z-50 rounded-lg bg-white px-4 py-3 font-bold text-brand-800 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
+      Saltar al contenido
+    </a>
+    <slot />
+  </body>
+</html>
