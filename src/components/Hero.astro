@@ -15,8 +15,7 @@ import { SITE, HOME_SERVICE_ZONES, waLink } from '../data/site';
       <!-- CTAs: una acción principal, dos secundarias; todas con texto explícito. -->
       <div class="mt-8 flex flex-wrap gap-3">
         <a href="#resultados" class="btn btn-primary">Consultar resultados en línea</a>
-        <a href="#examenes" class="btn btn-secondary">Buscar estudios</a>
-        <a href="#sedes" class="btn btn-secondary">Ubicación y horarios</a>
+        <a href={waLink('Hola, quiero agendar un servicio a domicilio.')} class="btn btn-wa text-white hover:bg-emerald-800">Agendar Toma de Muestra</a>        
       </div>
 
       <ul class="mt-8 grid gap-3 text-lg text-slate-700 sm:grid-cols-2">

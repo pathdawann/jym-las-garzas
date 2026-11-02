@@ -1,0 +1,155 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Panel Administrativo | J&M Las Garzas">
+  <main class="mx-auto max-w-4xl p-6 sm:p-12">
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <h1 class="text-3xl font-bold text-brand-900">Panel de Control</h1>
+      <button id="logout-btn" type="button" class="btn btn-secondary !min-h-10 px-4 py-2 text-sm">Cerrar sesión</button>
+    </div>
+
+    <!-- SECCIÓN 1: CARGAR RESULTADOS -->
+    <h2 class="mb-4 text-2xl font-bold text-brand-900">Cargar Resultados PDF</h2>
+    <div class="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm sm:p-8">
+      <form id="upload-form" class="space-y-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label for="cedula" class="block font-bold text-slate-800">Cédula del paciente</label>
+            <input type="text" id="cedula" required placeholder="Ej: V8223832" class="field uppercase" />
+          </div>
+          <div>
+            <label for="codigo" class="block font-bold text-slate-800">Código de muestra</label>
+            <input type="text" id="codigo" required placeholder="Ej: 3123" class="field uppercase" />
+          </div>
+        </div>
+        
+        <div>
+          <label for="file" class="block font-bold text-slate-800">Archivo PDF del resultado</label>
+          <input type="file" id="file" accept="application/pdf" required 
+            class="mt-2 block w-full text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-3 file:font-bold file:text-brand-800 hover:file:bg-brand-100" />
+        </div>
+
+        <p id="status-msg" class="hidden text-lg font-bold" aria-live="polite"></p>
+        <button type="submit" id="submit-btn" class="btn btn-primary w-full sm:w-auto">Subir y Guardar Informe</button>
+      </form>
+    </div>
+
+    <!-- SECCIÓN 2: GESTIÓN DE EXÁMENES (CATÁLOGO) -->
+    <h2 class="mb-4 mt-12 text-2xl font-bold text-brand-900">Agregar Nuevo Examen al Catálogo</h2>
+    <div class="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm sm:p-8">
+      <form id="exam-form" class="space-y-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label for="ex-id" class="block font-bold text-slate-800">ID Único (ej. glucosa-basal)</label>
+            <input type="text" id="ex-id" required class="field" />
+          </div>
+          <div>
+            <label for="ex-name" class="block font-bold text-slate-800">Nombre del Examen</label>
+            <input type="text" id="ex-name" required class="field" />
+          </div>
+          <div>
+            <label for="ex-category" class="block font-bold text-slate-800">Categoría (ej. Bioanálisis)</label>
+            <input type="text" id="ex-category" required class="field" />
+          </div>
+          <div>
+            <label for="ex-sample" class="block font-bold text-slate-800">Muestra (ej. Sangre)</label>
+            <input type="text" id="ex-sample" required class="field" />
+          </div>
+        </div>
+        <div>
+          <label for="ex-fasting" class="block font-bold text-slate-800">Requisitos de Ayuno</label>
+          <input type="text" id="ex-fasting" required class="field" />
+        </div>
+        <div class="mt-4 flex items-center gap-3">
+          <input type="checkbox" id="ex-frequent" class="h-5 w-5 rounded border-slate-400 text-brand-700 focus:ring-brand-700" />
+          <label for="ex-frequent" class="font-bold text-slate-800">Mostrar como Búsqueda Frecuente (Máx 12 en la web)</label>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4 w-full sm:w-auto">Guardar Examen en Catálogo</button>
+      </form>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  // 1. Protección de ruta: Si no hay sesión, regresa al login
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) window.location.href = '/admin/login';
+
+  // 2. Cerrar sesión
+  document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/admin/login';
+  });
+
+  // 3. Flujo de carga del formulario de RESULTADOS
+  const form = document.getElementById('upload-form') as HTMLFormElement;
+  const statusMsg = document.getElementById('status-msg')!;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+  function showMsg(text: string, isSuccess: boolean, isProcessing = false) {
+    statusMsg.textContent = text;
+    statusMsg.className = `mt-4 text-lg font-bold ${isSuccess ? (isProcessing ? 'text-brand-700' : 'text-emerald-700') : 'text-red-700'}`;
+    statusMsg.classList.remove('hidden');
+    if (!isProcessing) submitBtn.disabled = false;
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    
+    const cedula = (document.getElementById('cedula') as HTMLInputElement).value.replace(/\s/g, '').toUpperCase();
+    const codigo = (document.getElementById('codigo') as HTMLInputElement).value.replace(/\s/g, '').toUpperCase();
+    const fileInput = document.getElementById('file') as HTMLInputElement;
+    const file = fileInput.files?.[0];
+
+    if (!file) return showMsg('Por favor selecciona un documento PDF.', false);
+
+    showMsg('Subiendo documento seguro...', true, true);
+
+    const fileName = `${cedula}_${codigo}_${Date.now()}.pdf`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('informes')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+    if (uploadError) return showMsg(`Error al subir PDF: ${uploadError.message}`, false);
+
+    showMsg('Archivo subido. Registrando en base de datos...', true, true);
+
+    const { error: dbError } = await supabase
+      .from('resultados')
+      .insert([{ cedula, codigo, file_path: fileName }]);
+
+    if (dbError) return showMsg(`Error en base de datos: ${dbError.message}`, false);
+
+    showMsg('¡Resultado cargado con éxito! Listo para la consulta del paciente.', true);
+    form.reset();
+  });
+
+  // 4. Flujo de carga del formulario de EXÁMENES (Catálogo)
+  const examForm = document.getElementById('exam-form') as HTMLFormElement;
+  
+  examForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newExam = {
+      id: (document.getElementById('ex-id') as HTMLInputElement).value.toLowerCase().replace(/\s+/g, '-'),
+      name: (document.getElementById('ex-name') as HTMLInputElement).value,
+      category: (document.getElementById('ex-category') as HTMLInputElement).value,
+      sample: (document.getElementById('ex-sample') as HTMLInputElement).value,
+      fasting: (document.getElementById('ex-fasting') as HTMLInputElement).value,
+      is_frequent: (document.getElementById('ex-frequent') as HTMLInputElement).checked,
+      aliases: [], 
+      preparation: [] 
+    };
+
+    const { error } = await supabase.from('catalogo_examenes').insert([newExam]);
+    if (error) {
+      alert('Error al guardar: ' + error.message);
+    } else {
+      alert('Examen guardado correctamente en Supabase');
+      examForm.reset();
+    }
+  });
+</script>
